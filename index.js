@@ -19,7 +19,7 @@ app.use("/images", express.static("images", {
 }));
 
 // ---- Mongo connection ----------------------------------
-const uri = "mongodb+srv://uumoh022:lavender@cluster.qmny91x.mongodb.net/fullstackdb?retryWrites=true&w=majority&appName=Cluster";
+const uri = process.env.MONGODB_URI || "mongodb+srv://uumoh022:lavender@cluster.qmny91x.mongodb.net/fullstackdb?retryWrites=true&w=majority&appName=Cluster";
 const client = new MongoClient(uri);
 let lessons, orders;
 
@@ -32,8 +32,18 @@ async function connectDB() {
 connectDB();
 
 // ---- REST API routes -----------------------------------
-app.get("/lessons", async (_req, res) => {
-  res.json(await lessons.find().toArray());
+app.get("/lessons", async (req, res) => {
+  try {
+    const lessons = await client
+      .db("fullstackdb")
+      .collection("lesson")
+      .find()
+      .toArray();
+    res.json(lessons);
+  } catch (err) {
+    console.error("GET /lessons error:", err);
+    res.status(500).send("Internal Server Error");
+  }
 });
 
 app.post("/orders", async (req, res) => {
