@@ -47,9 +47,14 @@ app.get("/lessons", async (req, res) => {
 });
 
 app.post("/orders", async (req, res) => {
-  const order = req.body;              // { name, phone, lessonIDs, space }
-  const result = await orders.insertOne(order);
-  res.json({ insertedId: result.insertedId });
+   try {
+    const order = req.body;
+    const result = await db.collection('orders').insertOne(order);
+    res.status(201).json({ message: 'Order saved', orderId: result.insertedId });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to save order' });
+  }
 });
 
 app.put("/lessons/:id", async (req, res) => {
