@@ -48,12 +48,16 @@ app.get("/lessons", async (req, res) => {
 
 app.post("/orders", async (req, res) => {
    try {
-    const order = req.body;
-    const result = await db.collection('orders').insertOne(order);
-    res.status(201).json({ message: 'Order saved', orderId: result.insertedId });
+    if (!req.body || typeof req.body !== 'object' || Array.isArray(req.body)) {
+      return res.status(400).json({ error: 'Order must be a JSON object' });
+    }
+
+    const orders = client.db('fullstackdb').collection('order');
+    const result = await orders.insertOne(req.body); 
+    res.status(201).json({ insertedId: result.insertedId });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to save order' });
+    console.error('POST /orders error:', err);
+    res.status(500).json({ error: 'DB insert failed' });
   }
 });
 
